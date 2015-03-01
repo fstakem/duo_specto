@@ -86,4 +86,4 @@ def fetch_imgs():
     return send_from_directory(src_path, tarball, as_attachment=True)
 
 if __name__ == '__main__':
-    flask_app.run(debug=args.debug, port=args.port)
+    flask_app.run(host='0.0.0.0', debug=args.debug, port=args.port)
