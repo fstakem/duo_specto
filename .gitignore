@@ -68,4 +68,8 @@ Thumbs.db
 
 # Python env #
 ##############
-stereo_env/
+specto_client_env/
+specto_server_env/
+specto_engine_env/
+specto_composer_env/
+img/
