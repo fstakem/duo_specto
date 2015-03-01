@@ -19,6 +19,6 @@ import picamera
 
 
 def simple_capture(output_file, resolution):
-	with picamera.PiCamera as camera:
+	with picamera.PiCamera() as camera:
 		camera.resolution = (2592, 1944)
 		camera.capture(output_file)
