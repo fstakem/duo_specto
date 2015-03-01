@@ -1,7 +1,5 @@
-# Image dirs
+# Tmp dirs
 # -------------------------------
-old_imgs/
-recent_imgs/
 tmp/
 
 # Tmp files
