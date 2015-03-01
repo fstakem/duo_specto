@@ -19,7 +19,8 @@ import os
 import datetime
 from threading import Thread
 from flask import Flask, request, send_from_directory
-from mock_capture import simple_capture
+#from mock_capture import simple_capture
+from basic_capture import simple_capture
 from file_download import get_images
 
 
