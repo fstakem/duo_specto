@@ -19,6 +19,9 @@ import os
 from flask import Flask, request, redirect, url_for
 from werkzeug import secure_filename
 from flask import send_from_directory
+import urllib2
+import datetime
+from threading import Thread
 
 
 # Command line
@@ -40,9 +43,11 @@ args = parser.parse_args()
 
 # Path variables
 file_path = os.path.realpath(__file__)
-root_dir = file_path.split('/')[:-3]
-root_dir.append('img')
-img_dir = '/'.join( root_dir )
+directories = file_path.split('/')[:-2]
+directories.append('imgs')
+imgs_path = '/'.join(directories)
+directories[-1] = 'tmp'
+working_path = '/'.join(directories)
 
 
 ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -50,6 +55,8 @@ ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 flask_app = Flask(__name__)
 flask_app.config['UPLOAD_FOLDER'] = img_dir
 flask_app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+host_list = ['192.168.1.4']
 
 
 def allowed_file(filename):
@@ -100,6 +107,53 @@ def upload_file():
          <input type=submit value=Upload>
     </form>
     '''
+
+def capture_image(host, filename, resolution):
+    url = 'http://%s:8080/capture?filename=%s&width=%s&height=%s' % (host, filename, str(resolution[0]), str(resolution[1]))
+    print url
+    response = urllib2.urlopen(url)
+    html = response.read()
+
+    print 'Host: ' + host
+    print html
+
+@flask_app.route('/capture', methods=['GET'])
+def capture():
+    filename = request.args.get('filename')
+    width = request.args.get('width')
+    height = request.args.get('height')
+
+    timestamp = str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    resolution = (2592, 1944)
+
+    if width != None and height != None:
+        resolution = (int(width), int(height))
+
+    for host in host_list:
+        filename_end =  '_' + host + '_' + timestamp + '.jpg'
+
+        if filename != None and len(filename) > 0:
+            filename = filename + filename_end
+        else:
+            filename = 'img' + filename_end
+
+        thread = Thread(target=capture_image, args=[host, filename, resolution])
+        thread.start()
+
+    return 'Images captured'
+
+def download_imgs(host):
+    url = 'http://%s:8080/fetch_imgs' % (host)
+    output_filename = working_path + '/imgs_' + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.tar.gz'
+    filename, headers = urllib2.urlretrieve(url)
+
+@flask_app.route('/fetch_imgs', methods=['GET'])
+def fetch_imgs():
+    for host in host_list:
+        thread = Thread(target=download_imgs, args=[host])
+        thread.start()
+
+    return 'Images downloaded'
 
 if __name__ == '__main__':
     flask_app.run(debug=args.debug, port=args.port)

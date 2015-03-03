@@ -44,12 +44,14 @@ args = parser.parse_args()
 
 # Path variables
 file_path = os.path.realpath(__file__)
-directories = file_path.split('/')[:-1]
+directories = file_path.split('/')[:-2]
 src_path = '/'.join(directories)
 directories.append('recent_imgs')
 recent_imgs_path = '/'.join(directories)
 directories[-1] = 'old_imgs'
 old_imgs_path = '/'.join(directories)
+directories[-1] = 'tmp'
+working_path = '/'.join(directories)
 
 
 flask_app = Flask(__name__)
@@ -81,10 +83,10 @@ def capture():
 
 @flask_app.route('/fetch_imgs', methods=['GET'])
 def fetch_imgs():
-    tarball_path = get_images(recent_imgs_path, old_imgs_path, src_path)
+    tarball_path = get_images(recent_imgs_path, old_imgs_path, working_path)
     tarball = tarball_path.split('/')[-1]
 
-    return send_from_directory(src_path, tarball, as_attachment=True)
+    return send_from_directory(working_path, tarball, as_attachment=True)
 
 if __name__ == '__main__':
     flask_app.run(host='0.0.0.0', debug=args.debug, port=args.port)

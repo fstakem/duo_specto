@@ -30,7 +30,7 @@ def get_images(from_path, to_path, working_path):
 	extract_tarball(tarball_dest_path, to_path)
 	remove_tarball(tarball_dest_path)
 	remove_imgs(from_path)
-	
+		
 	return tarball_src_path
 
 def remove_tarball(tarball_path):
@@ -53,7 +53,8 @@ def extract_tarball(tarball_path, to_path):
 def remove_imgs(path):
 	files = os.listdir(path)
 	for filename in files:
- 		os.remove(path + '/' + filename)
+		if filename != '.gitignore':
+ 			os.remove(path + '/' + filename)
 	
 
 if __name__ == '__main__':
