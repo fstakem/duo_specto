@@ -22,6 +22,7 @@ from flask import send_from_directory
 import urllib2
 import datetime
 from threading import Thread
+import shutil
 
 
 # Command line
@@ -53,7 +54,7 @@ working_path = '/'.join(directories)
 ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 flask_app = Flask(__name__)
-flask_app.config['UPLOAD_FOLDER'] = img_dir
+flask_app.config['UPLOAD_FOLDER'] = imgs_path
 flask_app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 host_list = ['192.168.1.4']
@@ -144,8 +145,13 @@ def capture():
 
 def download_imgs(host):
     url = 'http://%s:8080/fetch_imgs' % (host)
-    output_filename = working_path + '/imgs_' + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.tar.gz'
-    filename, headers = urllib2.urlretrieve(url)
+    output_filename = 'imgs_' + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.tar.gz'
+    f = urllib2.urlopen(url)
+
+    with open(os.path.basename(output_filename), "wb") as local_file:
+        local_file.write(f.read())
+
+    shutil.move('./' + output_filename, working_path)
 
 @flask_app.route('/fetch_imgs', methods=['GET'])
 def fetch_imgs():
