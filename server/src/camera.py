@@ -18,9 +18,9 @@ This file is used to hold information about a raspberry pi camera.
 
 class Camera(object):
 
-	def __init__(self):
-		self.name = ''
-		self.ip_address = ''
+	def __init__(self, name, ip_address):
+		self.name = name
+		self.ip_address = ip_address
 		self.recent_imgs = []
 
 	def __str__(self):

@@ -132,7 +132,7 @@ def capture():
     if width != None and height != None:
         resolution = (int(width), int(height))
 
-    for camera in camera:
+    for camera in cameras:
         filename_end =  '_' + camera.name + '_' + timestamp + '.jpg'
 
         if filename != None and len(filename) > 0:
@@ -146,11 +146,7 @@ def capture():
     return 'Images captured'
 
 def download_imgs(camera):
-    files = os.listdir(working_path)
-    for filename in files:
-        if filename != '.gitignore':
-            os.remove(working_path + '/' + filename)
-
+    print 'Fetch imgs'
     url = 'http://%s:8080/fetch_imgs' % (camera.ip_address)
     output_filename = 'imgs_' + camera.name + '.tar.gz'
     f = urllib2.urlopen(url)
@@ -158,23 +154,38 @@ def download_imgs(camera):
     with open(os.path.basename(output_filename), "wb") as local_file:
         local_file.write(f.read())
 
-    shutil.move('./' + output_filename, working_path)
+    print 'Create camera dir'
+    img_path = working_path + '/' + camera.name
+    if not os.path.exists(img_path):
+        os.mkdir(img_path)
 
-    tarball_path = working_path + '/' + output_filename
-
-    tar = tarfile.open(tarball_path)
-    tar.extractall(working_path)
-    tar.close()
-
-    files = os.listdir(working_path)
+    print 'Remove files'
+    files = os.listdir(img_path)
     for filename in files:
         if filename != '.gitignore':
-            print filename
+            os.remove(img_path + '/' + filename)
+
+    print 'Move imgs'
+    shutil.move('./' + output_filename, img_path)
+
+    print 'Untar tarball'
+    tarball_path = img_path + '/' + output_filename
+    tar = tarfile.open(tarball_path)
+    tar.extractall(img_path)
+    tar.close()
+    os.remove(tarball_path)
+
+    print 'Looking at imgs'
+    files = os.listdir(img_path)
+    for filename in files:
+        if filename != '.gitignore':
+            camera.recent_imgs.append(img_path + '/' + filename)
 
 @flask_app.route('/fetch_imgs', methods=['GET'])
 def fetch_imgs():
     for camera in cameras:
-        download_imgs(camera)
+        thread = Thread(target=download_imgs, args=[camera])
+        thread.start()
 
     return 'Images downloaded'
 
