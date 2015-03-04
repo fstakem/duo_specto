@@ -23,6 +23,8 @@ import urllib2
 import datetime
 from threading import Thread
 import shutil
+from camera import Camera
+import tarfile
 
 
 # Command line
@@ -57,7 +59,7 @@ flask_app = Flask(__name__)
 flask_app.config['UPLOAD_FOLDER'] = imgs_path
 flask_app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-host_list = ['192.168.1.4']
+cameras = [ Camera('left', '192.168.1.4') ]
 
 
 def allowed_file(filename):
@@ -109,13 +111,13 @@ def upload_file():
     </form>
     '''
 
-def capture_image(host, filename, resolution):
-    url = 'http://%s:8080/capture?filename=%s&width=%s&height=%s' % (host, filename, str(resolution[0]), str(resolution[1]))
+def capture_image(camera, filename, resolution):
+    url = 'http://%s:8080/capture?filename=%s&width=%s&height=%s' % (camera.ip_address, filename, str(resolution[0]), str(resolution[1]))
     print url
     response = urllib2.urlopen(url)
     html = response.read()
 
-    print 'Host: ' + host
+    print str(camera)
     print html
 
 @flask_app.route('/capture', methods=['GET'])
@@ -130,22 +132,27 @@ def capture():
     if width != None and height != None:
         resolution = (int(width), int(height))
 
-    for host in host_list:
-        filename_end =  '_' + host + '_' + timestamp + '.jpg'
+    for camera in camera:
+        filename_end =  '_' + camera.name + '_' + timestamp + '.jpg'
 
         if filename != None and len(filename) > 0:
             filename = filename + filename_end
         else:
             filename = 'img' + filename_end
 
-        thread = Thread(target=capture_image, args=[host, filename, resolution])
+        thread = Thread(target=capture_image, args=[camera, filename, resolution])
         thread.start()
 
     return 'Images captured'
 
-def download_imgs(host):
-    url = 'http://%s:8080/fetch_imgs' % (host)
-    output_filename = 'imgs_' + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")) + '.tar.gz'
+def download_imgs(camera):
+    files = os.listdir(working_path)
+    for filename in files:
+        if filename != '.gitignore':
+            os.remove(working_path + '/' + filename)
+
+    url = 'http://%s:8080/fetch_imgs' % (camera.ip_address)
+    output_filename = 'imgs_' + camera.name + '.tar.gz'
     f = urllib2.urlopen(url)
 
     with open(os.path.basename(output_filename), "wb") as local_file:
@@ -153,11 +160,21 @@ def download_imgs(host):
 
     shutil.move('./' + output_filename, working_path)
 
+    tarball_path = working_path + '/' + output_filename
+
+    tar = tarfile.open(tarball_path)
+    tar.extractall(working_path)
+    tar.close()
+
+    files = os.listdir(working_path)
+    for filename in files:
+        if filename != '.gitignore':
+            print filename
+
 @flask_app.route('/fetch_imgs', methods=['GET'])
 def fetch_imgs():
-    for host in host_list:
-        thread = Thread(target=download_imgs, args=[host])
-        thread.start()
+    for camera in cameras:
+        download_imgs(camera)
 
     return 'Images downloaded'
 
