@@ -59,7 +59,7 @@ flask_app = Flask(__name__)
 flask_app.config['UPLOAD_FOLDER'] = imgs_path
 flask_app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-cameras = [ Camera('left', '192.168.1.4') ]
+cameras = [ Camera('left', '192.168.1.4'), Camera('right', '192.168.1.5') ]
 
 
 def allowed_file(filename):
@@ -190,6 +190,6 @@ def fetch_imgs():
     return 'Images downloaded'
 
 if __name__ == '__main__':
-    flask_app.run(debug=args.debug, port=args.port)
+    flask_app.run(host='0.0.0.0', debug=args.debug, port=args.port)
 
 
