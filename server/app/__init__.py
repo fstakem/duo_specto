@@ -8,7 +8,7 @@ bootstrap = Bootstrap(flask_app)
 flask_app.config.from_object('config')
 
 
-logger = logging.getLogger('Crash Server')
+logger = logging.getLogger('IoT Server')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s %(asctime)s %(name)s Line: %(lineno)d | %(message)s')
 handler = logging.StreamHandler()

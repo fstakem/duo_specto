@@ -14,12 +14,8 @@ This file is has the IOT server controller functions.
 
 
 # Libraries
-import simplejson
-import time
 from app import flask_app, logger
-from app import db
 from app import project_path, app_path, imgs_path, working_path
-from app.models import Crash, Device
 from flask import Flask, request, Response
 from flask import render_template
 from werkzeug import secure_filename
