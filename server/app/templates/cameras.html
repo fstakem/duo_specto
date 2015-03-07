@@ -129,6 +129,19 @@
                     console.log("AJAX Request success -> ", xhr, " -> ", textStatus)
                     console.log("Data -> ", rawData)
                     deactivateButtonSpinner(this);
+
+                    if(this.url == capture_photo_url)
+                    {
+                        
+                    }
+                    else if(this.url == fetch_photo_url)
+                    {
+                        
+                    }
+                    else if(this.url == search_camera_url)
+                    {
+                        searchCameraResult(this);
+                    }
                 },
                 complete : function(xhr, textStatus) 
                 {
@@ -181,6 +194,11 @@
 
             // Enable all ajax buttons
             $( ".ajax-button" ).removeAttr('disabled', "disabled")
+        }
+
+        function searchCameraResult(ajax)
+        {
+            console.log(ajax.data);
         }
 
         // Menu item

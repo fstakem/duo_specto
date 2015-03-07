@@ -68,8 +68,16 @@ def fetch_photo():
 @flask_app.route('/search_camera', methods=['POST'])
 def search_camera():
     logger.debug('Searching for camera.')
+    ip_address = request.data
 
-    return 'Search!'
+    url = 'http://%s:8080/' % ip_address[1:-1]
+    response = urllib2.urlopen(url)
+    html = response.read()
+
+    if html == 'Client up and running.':
+        return 'found'
+
+    return 'not_found'
 
 @flask_app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
