@@ -1,0 +1,193 @@
+{% extends "bootstrap/base.html" %}
+
+{% block head %}
+{{super()}}
+<link rel="stylesheet" href="static/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="static/css/spinner.css">
+<link rel="stylesheet" href="static/css/spin_animate.css">
+{% endblock %}
+
+{% block title %}IoT Platform{% endblock %}
+
+{% block navbar %}
+{% include "navbar.html"%}
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div style="background-color: #FFF7AA;" class="panel-heading">
+                <h3 style="color: black;" class="panel-title">Cameras</h3>
+            </div>
+            <div class="panel-body">
+                <h5><b>Cameras</b></h5>
+                <table id="camera-table"class="table">
+                      -- None, please add. --
+                </table>
+
+                <div class="btn-group" style="margin-bottom: 20px">
+                    <button class="btn btn-primary ajax-button" id="take-photos-button" >
+                        <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
+                        Take Photos
+                    </button>
+
+                    <button class="btn btn-primary ajax-button" id="fetch-photos-button" >
+                        <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
+                        Fetch Photos
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="camera-address-txt">Add Camera</label>
+                    <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address">
+                </div>
+
+                <button class="btn btn-primary ajax-button" id="camera-search-button" >
+                    <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="panel panel-default">
+            <div style="background-color: #FFF7AA;" class="panel-heading">
+                <h3 style="color: black;" class="panel-title">Pictures</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div style="width: 200px" class="pre-scrollable" id="jstree_demo_div">
+                            
+                        </div>
+                    </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script src="static/js/camera.js"></script>
+
+<script type="text/javascript">
+    console.log('Starting javascript excution on page.')
+
+    var cameras;
+    var capture_photo_url = "/capture_photo";
+    var fetch_photo_url = "/fetch_photo";
+    var search_camera_url = "/search_camera";
+
+    jQuery(document).ready(function () 
+    {
+        console.log('Document ready running jQuery commands.');
+
+        $(".ajax-button").click(function(e)
+        {
+            console.log("Take photos button clicked: performing AJAX");
+            console.log("Camera address: " + $("#camera-address-txt").val())
+
+            var url = '';
+            var data = '';
+
+            if(this.id == 'take-photos-button')
+            {
+                url = capture_photo_url;
+                data = JSON.stringify($("#camera-address-txt").val(), null, '\t');
+            }
+            else if(this.id == 'fetch-photos-button')
+            {
+                url = fetch_photo_url;
+                data = JSON.stringify($("#camera-address-txt").val(), null, '\t');
+            }
+            else if(this.id == 'camera-search-button')
+            {
+                url = search_camera_url;
+                data = JSON.stringify($("#camera-address-txt").val(), null, '\t');
+            }
+
+            activateButtonSpinner(this);
+            e.preventDefault();
+
+            $.ajax(
+            {
+                type: "POST",
+                url: url,
+                data: data,
+                contentType: 'application/json;charset=UTF-8',
+                success: function(rawData, textStatus, xhr)
+                {
+                    console.log("AJAX Request success -> ", xhr, " -> ", textStatus)
+                    console.log("Data -> ", rawData)
+                    deactivateButtonSpinner(this);
+                },
+                complete : function(xhr, textStatus) 
+                {
+                    console.log("AJAX Request complete -> ", xhr, " -> ", textStatus)
+                },
+                error: function(xhr, textStatus, errorThrown)
+                {
+                    console.log("AJAX Request error -> ", xhr, " -> ", textStatus, " error -> ", errorThrown)
+                    deactivateButtonSpinner(this);
+                }
+            });
+        });
+
+
+        function activateButtonSpinner(button)
+        {
+            var spin = $( button ).find( ".spinner" );
+            spin.toggleClass('active');
+
+            var icon = $( button ).find( ".glyphicon.glyphicon-refresh" );
+            animateClass = "glyphicon-refresh-animate";
+            icon.addClass( animateClass );
+
+            // Disable all ajax buttons
+            $( ".ajax-button" ).attr('disabled', "disabled")
+        }
+
+        function deactivateButtonSpinner(ajax)
+        {
+            var button =  '';
+
+            if(ajax.url == capture_photo_url)
+            {
+                button = $( "#take-photos-button" );
+            }
+            else if(ajax.url == fetch_photo_url)
+            {
+                button = $( "#fetch-photos-button" );
+            }
+            else if(ajax.url == search_camera_url)
+            {
+                button = $( "#camera-search-button" );
+            }
+
+            var spin = $( button ).find( ".spinner" );
+            spin.toggleClass('active');
+            var icon = $( button ).find( ".glyphicon.glyphicon-refresh" );
+            animateClass = "glyphicon-refresh-animate";
+            icon.removeClass( animateClass );
+
+            // Enable all ajax buttons
+            $( ".ajax-button" ).removeAttr('disabled', "disabled")
+        }
+
+        // Menu item
+        $('#camera_menu_item').addClass('active');
+
+    });
+
+</script>
+{% endblock %}
+

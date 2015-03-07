@@ -47,6 +47,30 @@ def index():
 
     return render_template('index.html')
 
+@flask_app.route('/cameras', methods=['GET'])
+def cameras():
+    logger.debug('Rendering camera page.')
+
+    return render_template('cameras.html')
+
+@flask_app.route('/capture_photo', methods=['POST'])
+def capture_photo():
+    logger.debug('Capturing photos.')
+
+    return 'Capture!'
+
+@flask_app.route('/fetch_photo', methods=['POST'])
+def fetch_photo():
+    logger.debug('Fetching photos.')
+
+    return 'Fetch!'
+
+@flask_app.route('/search_camera', methods=['POST'])
+def search_camera():
+    logger.debug('Searching for camera.')
+
+    return 'Search!'
+
 @flask_app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
