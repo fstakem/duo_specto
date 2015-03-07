@@ -3,6 +3,7 @@
 {% block head %}
 {{super()}}
 <link rel="stylesheet" href="static/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="static/jstree/dist/themes/default/style.min.css" />
 <link rel="stylesheet" href="static/css/spinner.css">
 <link rel="stylesheet" href="static/css/spin_animate.css">
 {% endblock %}
@@ -24,10 +25,9 @@
                 <h3 style="color: black;" class="panel-title">Cameras</h3>
             </div>
             <div class="panel-body">
-                <h5><b>Cameras</b></h5>
-                <table id="camera-table"class="table">
-                      -- None, please add. --
-                </table>
+                <h5><b>Found</b></h5>
+                <p id="no-cameras-p">-- None, please add. --</p>
+                <div style="width: 250px; margin-bottom: 25px" class="pre-scrollable" id="cameras-div"></div>
 
                 <div class="btn-group" style="margin-bottom: 20px">
                     <button class="btn btn-primary ajax-button" id="take-photos-button" >
@@ -41,9 +41,9 @@
                     </button>
                 </div>
 
+                <h5><b>Add Camera</b></h5>
                 <div class="form-group">
-                    <label for="camera-address-txt">Add Camera</label>
-                    <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address">
+                    <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address" value="192.168.1.4">
                 </div>
 
                 <button class="btn btn-primary ajax-button" id="camera-search-button" >
@@ -59,15 +59,8 @@
             <div style="background-color: #FFF7AA;" class="panel-heading">
                 <h3 style="color: black;" class="panel-title">Pictures</h3>
             </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-2">
-                        <div style="width: 200px" class="pre-scrollable" id="jstree_demo_div">
-                            
-                        </div>
-                    </div>
-
-            </div>
+            <div class="panel-body"></div>
+                
         </div>
     </div>
 </div>
@@ -77,12 +70,14 @@
 
 {% block scripts %}
 {{super()}}
+<script src="static/js/jstree/dist/jstree.min.js"></script>
 <script src="static/js/camera.js"></script>
 
 <script type="text/javascript">
     console.log('Starting javascript excution on page.')
 
-    var cameras;
+    var cameras = new Array();
+    var camera_tree;
     var capture_photo_url = "/capture_photo";
     var fetch_photo_url = "/fetch_photo";
     var search_camera_url = "/search_camera";
@@ -102,12 +97,14 @@
             if(this.id == 'take-photos-button')
             {
                 url = capture_photo_url;
-                data = JSON.stringify($("#camera-address-txt").val(), null, '\t');
+                data = { 'cameras': cameras }
+                data = JSON.stringify(data, null, '\t');
             }
             else if(this.id == 'fetch-photos-button')
             {
                 url = fetch_photo_url;
-                data = JSON.stringify($("#camera-address-txt").val(), null, '\t');
+                data = { 'cameras': cameras }
+                data = JSON.stringify(data, null, '\t');
             }
             else if(this.id == 'camera-search-button')
             {
@@ -124,10 +121,10 @@
                 url: url,
                 data: data,
                 contentType: 'application/json;charset=UTF-8',
-                success: function(rawData, textStatus, xhr)
+                success: function(raw_data, text_status, xhr)
                 {
-                    console.log("AJAX Request success -> ", xhr, " -> ", textStatus)
-                    console.log("Data -> ", rawData)
+                    console.log("AJAX Request success -> ", xhr, " -> ", text_status)
+                    console.log("Data -> ", raw_data)
                     deactivateButtonSpinner(this);
 
                     if(this.url == capture_photo_url)
@@ -140,16 +137,16 @@
                     }
                     else if(this.url == search_camera_url)
                     {
-                        searchCameraResult(this);
+                        searchCameraResult(raw_data, this);
                     }
                 },
-                complete : function(xhr, textStatus) 
+                complete : function(xhr, text_status) 
                 {
-                    console.log("AJAX Request complete -> ", xhr, " -> ", textStatus)
+                    console.log("AJAX Request complete -> ", xhr, " -> ", text_status)
                 },
-                error: function(xhr, textStatus, errorThrown)
+                error: function(xhr, text_status, error_thrown)
                 {
-                    console.log("AJAX Request error -> ", xhr, " -> ", textStatus, " error -> ", errorThrown)
+                    console.log("AJAX Request error -> ", xhr, " -> ", text_status, " error -> ", error_thrown)
                     deactivateButtonSpinner(this);
                 }
             });
@@ -196,9 +193,116 @@
             $( ".ajax-button" ).removeAttr('disabled', "disabled")
         }
 
-        function searchCameraResult(ajax)
+        function searchCameraResult(response, ajax)
+        {
+            var result = ajax.data.slice(1, -1);
+
+            if(response == 'found')
+            {
+                handleNewTreeData(result);
+            }
+            else if(response == 'not_found')
+            {
+                // No camera dialog
+            }
+        }
+
+        function takePhotosResult(ajax)
         {
             console.log(ajax.data);
+
+
+        }
+
+        function fetchPhotosResult(ajax)
+        {
+            console.log(ajax.data);
+        }
+
+        function handleNewTreeData(raw_data)
+        {
+            var no_camera_line = $('#no-cameras-p');
+            if(no_camera_line.length!= 0)
+            {
+                no_camera_line.remove();
+            }
+            else
+            {
+                $('#cameras-div').jstree("destroy");
+            }
+            
+            cameras[cameras.length] = new Camera('host', raw_data); 
+
+            console.log("Handle new tree data:");
+            console.log(cameras);
+
+            var data = createTree(cameras);
+            camera_tree = { 
+                            'core': 
+                            { 
+                                'data': data,
+                                'themes':
+                                {
+                                    'icons': false
+                                },
+                                'force_text': true,
+                            },
+
+                            'check_callback': true,
+                            'plugins': [ ]
+                          };
+
+            console.log(camera_tree);
+
+            $('#cameras-div').jstree(camera_tree);
+
+            $("#cameras-div").bind("select_node.jstree", function(evt, eventData)
+            {
+                var selectedObject = eventData.node.data;
+                var parentId = eventData.node.parent;
+                var parentObjectSearch = $.grep(camera_tree.core.data, function(e){return e.id == parentId;});
+                var parentObject;
+
+                if(parentObjectSearch.length > 0)
+                {
+                    parentObject = parentObjectSearch[0].data;
+                }
+
+                // DO SOMETHING
+            });
+        }
+
+        function createTree(cameras)
+        {
+            var data = []
+    
+            for(i = 0; i < cameras.length; i++)
+            {
+                var camera = cameras[i];
+                var camera_id = 'camera' + (i+1)
+                var camera_str = 'Camera ' + (i+1)
+                var camera_node = createCamera(camera, camera_id, camera_str)
+                console.log('Created camera: ' + camera_node)
+                data.push(camera_node)
+            }
+
+            return data;
+        }
+        //'icon' : 'glyphicon glyphicon-camera',
+
+        function createCamera(camera_data, camera_id, camera_str)
+        {
+            var data = []
+            data = { 'id': camera_id, 
+                     'parent': '#', 
+                     'text': camera_str, 
+                     'icon' : 'glyphicon glyphicon-camera', 
+                     'state': { 'opened': true },
+                     'li_attr': {}, 
+                     'a_attr':  {}  
+                    };
+
+            return data
         }
 
         // Menu item

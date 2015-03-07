@@ -21,11 +21,13 @@ from flask import render_template
 from werkzeug import secure_filename
 from flask import send_from_directory
 import urllib2
+from urllib2 import URLError
 import datetime
 from threading import Thread
 import shutil
 from camera import Camera
 import tarfile
+import json
 
 
 ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -57,7 +59,33 @@ def cameras():
 def capture_photo():
     logger.debug('Capturing photos.')
 
-    return 'Capture!'
+    data = json.loads(request.data)
+    for camera in data['cameras']:
+        camera_name = camera['name']
+        camera_ip = camera['ip_address']
+
+        timestamp = str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        resolution = (2592, 1944)
+        filename =  'pic_' + camera_name + '_' + timestamp + '.jpg'
+
+        url = 'http://%s:8080/capture?filename=%s&width=%s&height=%s' % (camera_ip, filename, str(resolution[0]), str(resolution[1]))
+        response = urllib2.urlopen(url)
+        html = response.read()
+        logger.debug('Making a call to: %s' % url)
+
+        try:
+            response = urllib2.urlopen(url)
+            html = response.read()
+
+            if html != 'image captured':
+                logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e))
+                return 'capture_error'
+
+        except URLError as e:
+            logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e))
+            return 'capture_error'
+
+    return 'successful capture'
 
 @flask_app.route('/fetch_photo', methods=['POST'])
 def fetch_photo():
@@ -71,11 +99,17 @@ def search_camera():
     ip_address = request.data
 
     url = 'http://%s:8080/' % ip_address[1:-1]
-    response = urllib2.urlopen(url)
-    html = response.read()
+    logger.debug('Making a call to: %s' % url)
 
-    if html == 'Client up and running.':
-        return 'found'
+    try:
+        response = urllib2.urlopen(url)
+        html = response.read()
+
+        if html == 'Client up and running.':
+            return 'found'
+    except URLError as e:
+        logger.error('Error searching for camera: ' + str(e))
+
 
     return 'not_found'
 

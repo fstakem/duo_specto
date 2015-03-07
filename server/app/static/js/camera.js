@@ -11,9 +11,10 @@
 // Libraries
 // None
 
-function Camera()
+function Camera(name, ip_address)
 {
-
+	this.name = name;
+	this.ip_address = ip_address;
 };
 
 Camera.prototype = 

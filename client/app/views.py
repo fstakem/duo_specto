@@ -49,7 +49,7 @@ def capture():
     thread = Thread(target=simple_capture, args=[output_file, resolution])
     thread.start()
 
-    return 'Image captured'
+    return 'image captured'
 
 @flask_app.route('/fetch_imgs', methods=['GET'])
 def fetch_imgs():
