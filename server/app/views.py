@@ -112,28 +112,30 @@ def fetch_photo():
                 local_file.write(f.read())
 
             camera_path = imgs_path + '/' + camera_ip
+            tarball_path = camera_path + '/' + output_filename
+
             if not os.path.exists(camera_path):
                 os.mkdir(camera_path)
+            elif os.path.exists(tarball_path):
+                os.remove(tarball_path)
 
             shutil.move('./' + output_filename, camera_path)
-
-            tarball_path = camera_path + '/' + output_filename
             tar = tarfile.open(tarball_path)
-            tar.extractall(img_path)
+            tar.extractall(camera_path)
             tar.close()
             os.remove(tarball_path)
 
-            files = os.listdir(img_path)
+            files = os.listdir(camera_path)
             imgs = []
             for filename in files:
                 if filename != '.gitignore':
-                    imgs.append(img_path + '/' + filename)
+                    imgs.append(camera_path + '/' + filename)
 
-            json_response[camera_ip] = imgs
+            json_response[camera_ip] = { 'success': True, 'img_data': imgs}
 
         except URLError as e:
             logger.error('Error fetching image from %s(%s): %s' % (camera_name, camera_ip, str(e)))
-            json_response[camera_ip] = 'failure'
+            json_response[camera_ip] = { 'success': False, 'img_data': imgs}
 
     return json.dumps(json_response)
 
