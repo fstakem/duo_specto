@@ -28,6 +28,7 @@ import shutil
 from camera import Camera
 import tarfile
 import json
+import os
 
 
 ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -58,6 +59,7 @@ def cameras():
 @flask_app.route('/capture_photo', methods=['POST'])
 def capture_photo():
     logger.debug('Capturing photos.')
+    json_response = {}
 
     data = json.loads(request.data)
     for camera in data['cameras']:
@@ -69,29 +71,71 @@ def capture_photo():
         filename =  'pic_' + camera_name + '_' + timestamp + '.jpg'
 
         url = 'http://%s:8080/capture?filename=%s&width=%s&height=%s' % (camera_ip, filename, str(resolution[0]), str(resolution[1]))
+        logger.debug('Making a call to: %s' % url)
         response = urllib2.urlopen(url)
         html = response.read()
-        logger.debug('Making a call to: %s' % url)
 
         try:
             response = urllib2.urlopen(url)
             html = response.read()
 
             if html != 'image captured':
-                logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e))
-                return 'capture_error'
+                logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e)))
+                json_response[camera_ip] = 'failure'
+            else:
+                json_response[camera_ip] = 'success'
 
         except URLError as e:
-            logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e))
-            return 'capture_error'
+            logger.error('Error capturing image from %s(%s): %s' % (camera_name, camera_ip, str(e)))
+            json_response[camera_ip] = 'failure'
 
-    return 'successful capture'
+    return json.dumps(json_response)
 
 @flask_app.route('/fetch_photo', methods=['POST'])
 def fetch_photo():
     logger.debug('Fetching photos.')
+    json_response = {}
 
-    return 'Fetch!'
+    data = json.loads(request.data)
+    for camera in data['cameras']:
+        camera_name = camera['name']
+        camera_ip = camera['ip_address']
+
+        url = 'http://%s:8080/fetch_imgs' % (camera_ip)
+        logger.debug('Making a call to: %s' % url)
+
+        try:
+            output_filename = 'imgs_' + camera_ip + '.tar.gz'
+            f = urllib2.urlopen(url)
+
+            with open(os.path.basename(output_filename), "wb") as local_file:
+                local_file.write(f.read())
+
+            camera_path = imgs_path + '/' + camera_ip
+            if not os.path.exists(camera_path):
+                os.mkdir(camera_path)
+
+            shutil.move('./' + output_filename, camera_path)
+
+            tarball_path = camera_path + '/' + output_filename
+            tar = tarfile.open(tarball_path)
+            tar.extractall(img_path)
+            tar.close()
+            os.remove(tarball_path)
+
+            files = os.listdir(img_path)
+            imgs = []
+            for filename in files:
+                if filename != '.gitignore':
+                    imgs.append(img_path + '/' + filename)
+
+            json_response[camera_ip] = imgs
+
+        except URLError as e:
+            logger.error('Error fetching image from %s(%s): %s' % (camera_name, camera_ip, str(e)))
+            json_response[camera_ip] = 'failure'
+
+    return json.dumps(json_response)
 
 @flask_app.route('/search_camera', methods=['POST'])
 def search_camera():

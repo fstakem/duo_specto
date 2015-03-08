@@ -20,7 +20,8 @@ from flask import Flask, request, send_from_directory
 import datetime
 from threading import Thread
 #from mock_capture import simple_capture
-from basic_capture import simple_capture
+#from basic_capture import simple_capture
+import picamera
 from file_download import get_images
 
 
@@ -46,8 +47,11 @@ def capture():
     if width != None and height != None:
         resolution = (int(width), int(height))
 
-    thread = Thread(target=simple_capture, args=[output_file, resolution])
-    thread.start()
+    #thread = Thread(target=simple_capture, args=[output_file, resolution])
+    #thread.start()
+    with picamera.PiCamera() as camera:
+        camera.resolution = (2592, 1944)
+        camera.capture(output_file)
 
     return 'image captured'
 

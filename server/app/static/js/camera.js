@@ -15,6 +15,7 @@ function Camera(name, ip_address)
 {
 	this.name = name;
 	this.ip_address = ip_address;
+	this.photos = new Array();
 };
 
 Camera.prototype = 

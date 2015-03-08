@@ -129,11 +129,11 @@
 
                     if(this.url == capture_photo_url)
                     {
-                        
+                        takePhotosResult(raw_data, this)
                     }
                     else if(this.url == fetch_photo_url)
                     {
-                        
+                        fetchPhotosResult(raw_data, this)
                     }
                     else if(this.url == search_camera_url)
                     {
@@ -207,16 +207,26 @@
             }
         }
 
-        function takePhotosResult(ajax)
+        function takePhotosResult(response, ajax)
         {
             console.log(ajax.data);
+            console.log(response);
 
-
+            //if(response == 'successful_capture')
+            //{
+            //    //handleNewTreeData(result);
+            //}
+            //else if(response == 'capture_error')
+            //{
+            //    // No camera dialog
+            //}
         }
 
-        function fetchPhotosResult(ajax)
+        function fetchPhotosResult(response, ajax)
         {
             console.log(ajax.data);
+            console.log(response);
+
         }
 
         function handleNewTreeData(raw_data)
