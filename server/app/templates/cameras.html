@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="static/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="static/css/spinner.css">
 <link rel="stylesheet" href="static/css/spin_animate.css">
+<link rel="stylesheet" href="static/js/fotorama/fotorama.css">
 {% endblock %}
 
 {% block title %}IoT Platform{% endblock %}
@@ -20,8 +21,8 @@
 <div class="row">
     <div class="col-md-3">
         <div class="panel panel-default">
-            <div style="background-color: #FFF7AA;" class="panel-heading">
-                <h3 style="color: black;" class="panel-title">Cameras</h3>
+            <div style="background-color: #2B4970; color: white;" class="panel-heading">
+                <h3 class="panel-title">Cameras</h3>
             </div>
             <div class="panel-body">
                 <h5><b>Found</b></h5>
@@ -55,11 +56,21 @@
 
     <div class="col-md-9">
         <div class="panel panel-default">
-            <div style="background-color: #FFF7AA;" class="panel-heading">
-                <h3 style="color: black;" class="panel-title">Pictures</h3>
+            <div style="background-color: #2B4970; color: white;" class="panel-heading">
+                <h3 class="panel-title">Pictures</h3>
             </div>
-            <div class="panel-body"></div>
-                
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10">
+                        <div  class="fotorama" data-nav="thumbs" data-keyboard="true" data-width="800" data-height="600">
+                            <img src="static/imgs/pi_cover_1.png">
+                            <img src="static/imgs/pi_cover_2.png">
+                        </div>
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -70,6 +81,7 @@
 {% block scripts %}
 {{super()}}
 <script src="static/js/jstree/dist/jstree.min.js"></script>
+<script src="static/js/fotorama/fotorama.js"></script>
 <script src="static/js/camera.js"></script>
 <script src="static/js/photo.js"></script>
 
