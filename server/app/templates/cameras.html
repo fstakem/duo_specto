@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="static/css/spinner.css">
 <link rel="stylesheet" href="static/css/spin_animate.css">
 <link rel="stylesheet" href="static/js/fotorama/fotorama.css">
+<link rel="stylesheet" href="static/js/jstree/dist/themes/default/style.min.css">
 {% endblock %}
 
 {% block title %}IoT Platform{% endblock %}
@@ -21,7 +22,7 @@
 <div class="row">
     <div class="col-md-3">
         <div class="panel panel-default">
-            <div style="background-color: #2B4970; color: white;" class="panel-heading">
+            <div style="background-color: #226394; color: white;" class="panel-heading">
                 <h3 class="panel-title">Cameras</h3>
             </div>
             <div class="panel-body">
@@ -56,7 +57,7 @@
 
     <div class="col-md-9">
         <div class="panel panel-default">
-            <div style="background-color: #2B4970; color: white;" class="panel-heading">
+            <div style="background-color: #226394; color: white;" class="panel-heading">
                 <h3 class="panel-title">Pictures</h3>
             </div>
             <div class="panel-body">
@@ -86,7 +87,7 @@
 <script src="static/js/photo.js"></script>
 
 <script type="text/javascript">
-    console.log('Starting javascript excution on page.')
+    console.log('Starting javascript execution on page.')
 
     var cameras = new Array();
     var camera_tree;
@@ -287,14 +288,8 @@
             }
             
             var data = createTree(cameras);
-            camera_tree = { 
-                            'core': 
-                            { 
-                                'data': data,
-                            },
-                          };
+            camera_tree = { core: { data: data }};
 
-            console.log(camera_tree);
 
             $('#jstree_demo_div').jstree(camera_tree);
 
@@ -311,6 +306,13 @@
                 }
 
                 // DO SOMETHING
+                console.log("----------------------------------");
+                console.log(evt);
+                console.log(eventData);
+                console.log(selectedObject);
+                console.log(parentId);
+                console.log(parentObjectSearch);
+                console.log(parentObject);
             });
         }
 
@@ -340,8 +342,7 @@
 
             return data;
         }
-        //'icon' : 'glyphicon glyphicon-camera',
-
+        
         function createCamera(camera_data, camera_id, camera_str)
         {
             var data = []
@@ -349,9 +350,7 @@
                      'parent': '#', 
                      'text': camera_str, 
                      'icon' : 'glyphicon glyphicon-camera', 
-                     'state': { 'opened': true },
-                     'li_attr': {}, 
-                     'a_attr':  {}  
+                     'data': camera_data 
                     };
 
             return data
@@ -364,15 +363,16 @@
                      'parent': camera_id, 
                      'text': photo_str, 
                      'icon' : 'glyphicon glyphicon-picture', 
-                     'li_attr': {}, 
-                     'a_attr':  {}  
+                     'data': photo_data
                     };
 
             return data
         }
 
         // Menu item
-        $('#camera_menu_item').addClass('active');
+        //$('#camera_menu_item').addClass('active');
+        $('#camera_menu_item')[0].style.background = "#8db3d0";
+        $('#camera_menu_item a')[0].style.color = "black"
 
     });
 
