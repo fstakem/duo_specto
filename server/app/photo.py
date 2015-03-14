@@ -1,14 +1,14 @@
 # <-----------------------------------------< Header >----------------------------------------->
 #
-#       camera.py
+#       photo.py
 #       By: Fredrick Stakem
-#       Date: 3.3.15
+#       Date: 3.13.15
 #
 #
 # <-----------------------------------------<---~~--->----------------------------------------->
 
 """
-This file is used to hold information about a raspberry pi camera.
+This file is used to hold information about a camera photo.
 
 """
 
@@ -17,13 +17,13 @@ This file is used to hold information about a raspberry pi camera.
 #
 
 
-class Camera(object):
+class Photo(object):
 
-	def __init__(self, name, ip_address):
+	def __init__(self, name, path, url):
 		self.name = name
-		self.ip_address = ip_address
-		self.imgs = []
+		self.path = path
+		self.url = url
 
 	def __str__(self):
-		output = 'Camera: %s @ %s' % (self.name, self.ip_address)
+		output = 'Photo: %s @ %s' % (self.name, self.short_path)
 		return output

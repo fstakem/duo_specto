@@ -20,8 +20,7 @@ log.setLevel(logging.ERROR)
 
 project_path = '/'.join( os.path.realpath(__file__).split('/')[:-2] )
 app_path = '/'.join( os.path.realpath(__file__).split('/')[:-1] )
-imgs_path = project_path + '/imgs'
-working_path = project_path + '/tmp'
-
+imgs_path = app_path + '/static/imgs'
+working_path = app_path + '/static/tmp'
 
 from app import views

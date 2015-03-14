@@ -64,9 +64,11 @@
                 <div class="row">
                     <div class="col-md-1"></div>
                     <div class="col-md-10">
-                        <div  class="fotorama" data-nav="thumbs" data-keyboard="true" data-width="800" data-height="600">
-                            <img src="static/imgs/pi_cover_1.png">
-                            <img src="static/imgs/pi_cover_2.png">
+                        <div  class="fotorama-div">
+                            <div class="fotorama" data-auto="false">
+                                <!--<img src="static/imgs/pi_cover_1.png"> -->
+                                <!-- <img src="static/imgs/pi_cover_2.png"> -->
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-1"></div>
@@ -88,6 +90,21 @@
 
 <script type="text/javascript">
     console.log('Starting javascript execution on page.')
+
+    var $fotorama_div = $('.fotorama-div').fotorama(
+    {
+        height: 600,
+        width: 800,
+        arrows: true,
+        nav: "thumbs",
+        arrows: true,
+        keyboard: true,
+        data: [
+              {img: 'static/imgs/pi_cover_1.png', thumb: '#'},
+              {img: 'static/imgs/pi_cover_2.png', thumb: '#'}
+            ]
+    });
+    var fotorama = $fotorama_div.data('fotorama');
 
     var cameras = new Array();
     var camera_tree;
@@ -261,10 +278,11 @@
                 var camera_data = response_data[camera.ip_address]
                 var new_photos = new Array();
 
-                for(j = 0; j < camera_data.img_data.length; j++)
+                for(j = 0; j < camera_data.camera.imgs.length; j++)
                 {
-                    var img_path = camera_data.img_data[j];
-                    new_photos.push( new Photo('Photo' , img_path) );
+                    var img_name = camera_data.camera.imgs[j].name;
+                    var img_path = camera_data.camera.imgs[j].url;
+                    new_photos.push( new Photo(img_name , img_path) );
                 }
 
                 camera.removePhotosWithoutPath();
@@ -288,7 +306,14 @@
             }
             
             var data = createTree(cameras);
-            camera_tree = { core: { data: data }};
+            camera_tree = { 
+                            core: 
+                            { 
+                                data: data 
+                            },
+                            plugins: ["contextmenu", "wholerow"],
+                            contextmenu: {items: customMenu}
+                        };
 
 
             $('#jstree_demo_div').jstree(camera_tree);
@@ -305,15 +330,39 @@
                     parentObject = parentObjectSearch[0].data;
                 }
 
-                // DO SOMETHING
-                console.log("----------------------------------");
-                console.log(evt);
-                console.log(eventData);
-                console.log(selectedObject);
-                console.log(parentId);
-                console.log(parentObjectSearch);
-                console.log(parentObject);
+                if(parentObject == undefined)
+                {
+                    loadPhotos(selectedObject);
+                }
+                else
+                {
+                    selectPhoto(parentObject, selectedObject);
+                }
             });
+        }
+
+        function customMenu(node)
+        {
+            var items = 
+            {
+                renameItem: 
+                {
+                    label: "Rename",
+                    action: function () {}
+                },
+                deleteItem: 
+                {
+                    label: "Delete",
+                    action: function () {}
+                }
+            };
+
+            if ($(node).hasClass("folder")) 
+            {
+                delete items.deleteItem;
+            }
+
+            return items;
         }
 
         function createTree(cameras)
@@ -367,6 +416,24 @@
                     };
 
             return data
+        }
+
+        function loadPhotos(camera)
+        {
+            var imgs = Array();
+            console.log(camera);
+
+            for(i = 0; i < camera.photos.length; i++)
+            {
+                imgs.push( { img: camera.photos[i].path } )
+            }
+
+            fotorama.load(imgs);
+        }
+
+        function selectPhoto(camera, photo)
+        {
+
         }
 
         // Menu item

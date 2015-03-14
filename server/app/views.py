@@ -16,7 +16,7 @@ This file is has the IOT server controller functions.
 # Libraries
 from app import flask_app, logger
 from app import project_path, app_path, imgs_path, working_path
-from flask import Flask, request, Response
+from flask import Flask, request, Response, url_for
 from flask import render_template
 from werkzeug import secure_filename
 from flask import send_from_directory
@@ -26,6 +26,7 @@ import datetime
 from threading import Thread
 import shutil
 from camera import Camera
+from photo import Photo
 import tarfile
 import json
 import os
@@ -35,6 +36,12 @@ ALLOWED_EXTENSIONS = set(['data', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 cameras = [ Camera('left', '192.168.1.4'), Camera('right', '192.168.1.5') ]
 
 
+def ComplexHandler(obj):
+    if isinstance(obj, datetime.datetime):
+        return str(obj)
+    else:
+        return obj.__dict__
+    
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -97,21 +104,23 @@ def fetch_photo():
     json_response = {}
 
     data = json.loads(request.data)
-    for camera in data['cameras']:
-        camera_name = camera['name']
-        camera_ip = camera['ip_address']
+    for camera_data in data['cameras']:
+        name = camera_data['name']
+        ip = camera_data['ip_address']
+        camera = Camera(name, ip)
 
-        url = 'http://%s:8080/fetch_imgs' % (camera_ip)
+        url = 'http://%s:8080/fetch_imgs' % (camera.ip_address)
         logger.debug('Making a call to: %s' % url)
 
         try:
-            output_filename = 'imgs_' + camera_ip + '.tar.gz'
+            output_filename = 'imgs_' + camera.ip_address + '.tar.gz'
             f = urllib2.urlopen(url)
 
             with open(os.path.basename(output_filename), "wb") as local_file:
                 local_file.write(f.read())
 
-            camera_path = imgs_path + '/' + camera_ip
+            camera_path = imgs_path + '/' + camera.ip_address
+            camera_short_path = 'imgs/' + camera.ip_address
             tarball_path = camera_path + '/' + output_filename
 
             if not os.path.exists(camera_path):
@@ -129,15 +138,18 @@ def fetch_photo():
             imgs = []
             for filename in files:
                 if filename != '.gitignore':
-                    imgs.append(camera_path + '/' + filename)
+                    path = camera_path + '/' + filename
+                    url = url_for('static', filename=camera_short_path + '/' + filename)
+                    photo = Photo('photo', path, url)
+                    camera.imgs.append(photo)
 
-            json_response[camera_ip] = { 'success': True, 'img_data': imgs}
+            json_response[camera.ip_address] = { 'success': True, 'camera': camera}
 
         except URLError as e:
-            logger.error('Error fetching image from %s(%s): %s' % (camera_name, camera_ip, str(e)))
-            json_response[camera_ip] = { 'success': False, 'img_data': imgs}
+            logger.error('Error fetching image from %s(%s): %s' % (camera.name, camera.ip_address, str(e)))
+            json_response[camera.ip_address] = { 'success': False, 'camera': camera}
 
-    return json.dumps(json_response)
+    return json.dumps(json_response, default=ComplexHandler)
 
 @flask_app.route('/search_camera', methods=['POST'])
 def search_camera():
