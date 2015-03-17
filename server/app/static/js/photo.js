@@ -19,13 +19,5 @@ function Photo(name, path)
 
 Photo.prototype = 
 {
-	equals: function(other_photo)
-	{
-		if(this.name == other_photo.name && this.path == other_photo.path)
-		{
-			return true;
-		}
-
-		return false;
-	}
+	
 };

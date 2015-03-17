@@ -42,7 +42,7 @@
                     </button>
                 </div>
 
-                <h5><b>Add Camera</b></h5>
+                <h5><b>Find Camera</b></h5>
                 <div class="form-group">
                     <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address" value="192.168.1.4">
                 </div>
@@ -87,6 +87,7 @@
 <script src="static/js/fotorama/fotorama.js"></script>
 <script src="static/js/camera.js"></script>
 <script src="static/js/photo.js"></script>
+<script src="static/js/lodashmin.js"></script>
 
 <script type="text/javascript">
     console.log('Starting javascript execution on page.')
@@ -111,6 +112,9 @@
     var capture_photo_url = "/capture_photo";
     var fetch_photo_url = "/fetch_photo";
     var search_camera_url = "/search_camera";
+
+    var selected_camera = null;
+    var selected_photo = null;
 
     jQuery(document).ready(function () 
     {
@@ -282,7 +286,9 @@
                 {
                     var img_name = camera_data.camera.imgs[j].name;
                     var img_path = camera_data.camera.imgs[j].url;
-                    new_photos.push( new Photo(img_name , img_path) );
+                    var photo =  new Photo(img_name , img_path);
+                    console.log(photo);
+                    new_photos.push(photo);
                 }
 
                 camera.removePhotosWithoutPath();
@@ -332,7 +338,7 @@
 
                 if(parentObject == undefined)
                 {
-                    loadPhotos(selectedObject);
+                    selectCamera(selectedObject);
                 }
                 else
                 {
@@ -418,22 +424,53 @@
             return data
         }
 
-        function loadPhotos(camera)
+        function selectCamera(camera)
         {
-            var imgs = Array();
-            console.log(camera);
-
-            for(i = 0; i < camera.photos.length; i++)
+            if(camera != selected_camera)
             {
-                imgs.push( { img: camera.photos[i].path } )
-            }
+                var imgs = Array();
 
-            fotorama.load(imgs);
+                for(i = 0; i < camera.photos.length; i++)
+                {
+                    imgs.push( { img: camera.photos[i].path } )
+                }
+
+                fotorama.load(imgs);
+
+                selected_camera = camera;
+                selected_photo = camera.photos[0];
+            }
         }
 
         function selectPhoto(camera, photo)
         {
+            if(camera != selected_camera)
+            {
+                var imgs = Array();
 
+                for(i = 0; i < camera.photos.length; i++)
+                {
+                    imgs.push( { img: camera.photos[i].path } )
+                }
+
+                fotorama.load(imgs);
+                selected_camera = camera;
+            }
+
+            if( photo.equals(selected_photo) )
+            {
+                console.log(selected_photo)
+                for(i = 0; i < camera.photos.length; i++)
+                {
+                    console.log()
+                    if(photo == camera.photos[i])
+                    {
+                        fotorama.show(i);
+                        selected_photo = photo;
+                        break;
+                    }
+                }
+            }
         }
 
         // Menu item
