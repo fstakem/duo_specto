@@ -8,11 +8,10 @@
 // <-----------------------------------------<---~~--->----------------------------------------->
 
 
-// Libraries
-// None
 
-function Camera(name, ip_address)
+function Camera(id, name, ip_address)
 {
+	this.id = id;
 	this.name = name;
 	this.ip_address = ip_address;
 	this.photos = new Array();
@@ -35,26 +34,26 @@ Camera.prototype =
 		}
 	},
 
-	addPhotos: function(photos)
+	photoIndex: function(photo)
 	{
-		for(i = 0; i < photos.length; i++)
+		for(i = 0; i < this.photos.length; i++)
 		{
-			var photo = photos[i];
-			var add_photo = true;
-
-			for(j = 0; j < this.photos.length; j++)
+			var next_photo = this.photos[i];
+			if(_.isEqual(next_photo, photo))
 			{
-				if(this.photos[j].equals(photo))
-				{
-					add_photo = false;
-					break;
-				}
-			}
-
-			if(add_photo)
-			{
-				this.photos[this.photos.length] = photo;
+				return i;
 			}
 		}
-	}
+
+		return -1;
+	},
+
+	addPhoto: function(photo)
+	{
+		if(this.photoIndex(photo) >= 0)
+		{
+			this.photos.push(photo);
+		}
+	},
+
 };

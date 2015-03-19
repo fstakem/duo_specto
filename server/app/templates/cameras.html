@@ -87,7 +87,8 @@
 <script src="static/js/fotorama/fotorama.js"></script>
 <script src="static/js/camera.js"></script>
 <script src="static/js/photo.js"></script>
-<script src="static/js/lodashmin.js"></script>
+<script src="static/js/lodash.min.js"></script>
+<script src="static/js/jquery.hotkeys.js"></script>
 
 <script type="text/javascript">
     console.log('Starting javascript execution on page.')
@@ -105,16 +106,12 @@
               {img: 'static/imgs/pi_cover_2.png', thumb: '#'}
             ]
     });
-    var fotorama = $fotorama_div.data('fotorama');
 
-    var cameras = new Array();
-    var camera_tree;
+    var fotorama = $fotorama_div.data('fotorama');
+    var camera_tree = null;
     var capture_photo_url = "/capture_photo";
     var fetch_photo_url = "/fetch_photo";
     var search_camera_url = "/search_camera";
-
-    var selected_camera = null;
-    var selected_photo = null;
 
     jQuery(document).ready(function () 
     {
@@ -131,12 +128,14 @@
             if(this.id == 'take-photos-button')
             {
                 url = capture_photo_url;
+                var cameras = getCamerasFromTree();
                 data = { 'cameras': cameras }
                 data = JSON.stringify(data, null, '\t');
             }
             else if(this.id == 'fetch-photos-button')
             {
                 url = fetch_photo_url;
+                var cameras = getCamerasFromTree();
                 data = { 'cameras': cameras }
                 data = JSON.stringify(data, null, '\t');
             }
@@ -174,7 +173,6 @@
                         searchCameraResult(raw_data, this);
                     }
 
-                    handleNewTreeData();
                 },
                 complete : function(xhr, text_status) 
                 {
@@ -188,6 +186,25 @@
             });
         });
 
+        $(document).bind('keydown', 'right', function(e) 
+        {
+            console.log('RIGHT')
+            return false;
+        });
+
+        $(document).bind('keydown', 'up', function(e) 
+        {
+            console.log('UP');
+            
+            return false;
+        });
+
+        $('#jstree_demo_div').on('keydown.jstree', '.jstree-anchor', function (e) 
+        {
+            e.preventDefault();
+            var instance = $.jstree.reference(this); // this is the node (as you described)
+            var selected = instance.get_selected();  // array of selected nodes, you might need [0]
+        })
 
         function activateButtonSpinner(button)
         {
@@ -229,14 +246,31 @@
             $( ".ajax-button" ).removeAttr('disabled', "disabled")
         }
 
+        function getCamerasFromTree()
+        {
+            var cameras = new Array();
+
+            if(camera_tree != null)
+            {
+                for(i = 0; i < camera_tree.core.data.length; i++)
+                {
+                    var node = camera_tree.core.data[i];
+                    cameras.push(node.data)
+                }
+            }
+            
+            return cameras;
+        }
+
         function searchCameraResult(response, ajax)
         {
+            var cameras = getCamerasFromTree();
             var result = ajax.data.slice(1, -1);
 
             if(response == 'found')
             {
-                cameras[cameras.length] = new Camera('host', result); 
-                
+                cameras[cameras.length] = new Camera(-1, result, result);
+                handleNewTreeData(cameras);
             }
             else if(response == 'not_found')
             {
@@ -246,23 +280,28 @@
 
         function takePhotosResult(response, ajax)
         {
-            console.log(response);
-            response_data = JSON.parse(response);
+            var cameras = getCamerasFromTree();
             var failed_cameras = new Array();
-
+            var response_data = JSON.parse(response);
+            
             for(i = 0; i < cameras.length; i++)
             {
                 var camera = cameras[i];
-                var camera_data = response_data[camera.ip_address]
+                var camera_response = response_data[camera.ip_address]
 
-                if(camera_data.sucess == true)
+                if(camera_response.sucess == true)
                 {
-                    camera.addPhotos(new Photos('-On Client-', ''));
+                    camera.addPhotos(new Photos(-1, '-On Client-', ''));
                 }
                 else
                 {
                     failed_cameras.push(camera);
                 }
+            }
+
+            if(cameras.length > failed_cameras.length)
+            {   
+                handleNewTreeData(cameras);
             }
 
             if(failed_cameras.length > 0)
@@ -273,30 +312,32 @@
 
         function fetchPhotosResult(response, ajax)
         {
-            console.log(response);
+            var cameras = getCamerasFromTree();
             response_data = JSON.parse(response);
 
             for(i = 0; i < cameras.length; i++)
             {
                 var camera = cameras[i];
-                var camera_data = response_data[camera.ip_address]
-                var new_photos = new Array();
+                var camera_response = response_data[camera.ip_address]
 
-                for(j = 0; j < camera_data.camera.imgs.length; j++)
+                for(j = 0; j < camera_response.camera.imgs.length; j++)
                 {
-                    var img_name = camera_data.camera.imgs[j].name;
-                    var img_path = camera_data.camera.imgs[j].url;
-                    var photo =  new Photo(img_name , img_path);
-                    console.log(photo);
-                    new_photos.push(photo);
+                    var name = camera_response.camera.imgs[j].name;
+                    var path = camera_response.camera.imgs[j].url;
+                    var photo =  new Photo(-1, name , path);
+                    
+                    console.log(camera);
+                    if(camera.photoIndex(photo) < 0)
+                    {
+                        camera.addPhoto(photo);
+                    }
                 }
-
-                camera.removePhotosWithoutPath();
-                camera.addPhotos(new_photos);
             }
+
+            handleNewTreeData(cameras);
         }
 
-        function handleNewTreeData()
+        function handleNewTreeData(cameras)
         {
             console.log("Handle new tree data:");
             console.log(cameras);
@@ -320,7 +361,6 @@
                             plugins: ["contextmenu", "wholerow"],
                             contextmenu: {items: customMenu}
                         };
-
 
             $('#jstree_demo_div').jstree(camera_tree);
 
@@ -378,19 +418,15 @@
             for(i = 0; i < cameras.length; i++)
             {
                 var camera = cameras[i];
-                var camera_id = 'camera' + (i+1)
-                var camera_str = 'Camera ' + (i+1)
-                var camera_node = createCamera(camera, camera_id, camera_str)
-                console.log('Created camera: ' + camera_node)
+                camera.id = 'camera' + (i+1)
+                var camera_node = createCameraNode(camera)
                 data.push(camera_node)
 
                 for(j =0; j < camera.photos.length; j++)
                 {
                     var photo = cameras[i].photos[j];
-                    var photo_id = 'camera' + (i+1) + '_photo' + (j+1)
-                    var photo_str = 'Photo ' + (j+1)
-                    var photo_node = createPhoto(camera_id, photo, photo_id, photo_str)
-                    console.log('Created photo: ' + photo_node)
+                    photo.id = camera.id + "_photo" + (j+1)
+                    var photo_node = createPhotoNode(camera, photo)
                     data.push(photo_node)
                 }
             }
@@ -398,27 +434,27 @@
             return data;
         }
         
-        function createCamera(camera_data, camera_id, camera_str)
+        function createCameraNode(camera)
         {
             var data = []
-            data = { 'id': camera_id, 
+            data = { 'id': camera.id, 
                      'parent': '#', 
-                     'text': camera_str, 
+                     'text': camera.name, 
                      'icon' : 'glyphicon glyphicon-camera', 
-                     'data': camera_data 
+                     'data': camera 
                     };
 
             return data
         }
 
-        function createPhoto(camera_id, photo_data, photo_id, photo_str)
+        function createPhotoNode(camera, photo)
         {
             var data = []
-            data = { 'id': photo_id, 
-                     'parent': camera_id, 
-                     'text': photo_str, 
+            data = { 'id': photo.id, 
+                     'parent': camera.id, 
+                     'text': photo.name, 
                      'icon' : 'glyphicon glyphicon-picture', 
-                     'data': photo_data
+                     'data': photo
                     };
 
             return data
@@ -426,51 +462,20 @@
 
         function selectCamera(camera)
         {
-            if(camera != selected_camera)
+            var imgs = Array();
+
+            for(i = 0; i < camera.photos.length; i++)
             {
-                var imgs = Array();
-
-                for(i = 0; i < camera.photos.length; i++)
-                {
-                    imgs.push( { img: camera.photos[i].path } )
-                }
-
-                fotorama.load(imgs);
-
-                selected_camera = camera;
-                selected_photo = camera.photos[0];
+                imgs.push( { img: camera.photos[i].path } )
             }
+
+            fotorama.load(imgs);
         }
 
         function selectPhoto(camera, photo)
         {
-            if(camera != selected_camera)
-            {
-                var imgs = Array();
-
-                for(i = 0; i < camera.photos.length; i++)
-                {
-                    imgs.push( { img: camera.photos[i].path } )
-                }
-
-                fotorama.load(imgs);
-                selected_camera = camera;
-            }
-
-            if( photo.equals(selected_photo) )
-            {
-                console.log(selected_photo)
-                for(i = 0; i < camera.photos.length; i++)
-                {
-                    console.log()
-                    if(photo == camera.photos[i])
-                    {
-                        fotorama.show(i);
-                        selected_photo = photo;
-                        break;
-                    }
-                }
-            }
+            var index = camera.photoIndex(photo);
+            fotorama.show(index);
         }
 
         // Menu item

@@ -11,13 +11,14 @@
 // Libraries
 // None
 
-function Photo(name, path)
+function Photo(id, name, path)
 {
+	this.id = id;
 	this.name = name;
 	this.path = path;
 };
 
 Photo.prototype = 
 {
-	
+
 };
