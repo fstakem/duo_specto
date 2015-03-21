@@ -99,8 +99,8 @@
         width: 800,
         arrows: true,
         nav: "thumbs",
-        arrows: true,
-        keyboard: true,
+        arrows: false,
+        keyboard: false,
         data: [
               {img: 'static/imgs/pi_cover_1.png', thumb: '#'},
               {img: 'static/imgs/pi_cover_2.png', thumb: '#'}
@@ -109,9 +109,13 @@
 
     var fotorama = $fotorama_div.data('fotorama');
     var camera_tree = null;
+    var selected_camera = null;
+    var selected_photo = null;
     var capture_photo_url = "/capture_photo";
     var fetch_photo_url = "/fetch_photo";
     var search_camera_url = "/search_camera";
+
+    var test_cameras = null;
 
     jQuery(document).ready(function () 
     {
@@ -188,13 +192,14 @@
 
         $(document).bind('keydown', 'right', function(e) 
         {
-            console.log('RIGHT')
+            console.log('RIGHT');
+
             return false;
         });
 
-        $(document).bind('keydown', 'up', function(e) 
+        $(document).bind('keydown', 'left', function(e) 
         {
-            console.log('UP');
+            console.log('LEFT');
             
             return false;
         });
@@ -326,7 +331,6 @@
                     var path = camera_response.camera.imgs[j].url;
                     var photo =  new Photo(-1, name , path);
                     
-                    console.log(camera);
                     if(camera.photoIndex(photo) < 0)
                     {
                         camera.addPhoto(photo);
@@ -341,6 +345,8 @@
         {
             console.log("Handle new tree data:");
             console.log(cameras);
+            test_cameras = cameras;
+
 
             var no_camera_line = $('#no-cameras-p');
             if(no_camera_line.length != 0)
@@ -460,22 +466,75 @@
             return data
         }
 
+        // Main user interaction logic => selectCamera() & selectPhoto()
+        // The user has selected a camera from the camera tree
         function selectCamera(camera)
         {
-            var imgs = Array();
-
-            for(i = 0; i < camera.photos.length; i++)
+            // Previously camera or nothing was selected
+            if(selected_photo == null)
             {
-                imgs.push( { img: camera.photos[i].path } )
+                // Previous camera was different than current camera selected
+                if(!_.isEqual(selected_camera, camera))
+                {
+                    var imgs = camera.getPhotoPaths();
+                    fotorama.load(imgs);
+                }
+            }
+            // Previously photo was selected
+            else
+            {
+                // Previous photo selected was from different camera
+                if(!_.isEqual(selected_camera, camera))
+                {
+                    var imgs = camera.getPhotoPaths();
+                    fotorama.load(imgs);
+                }
+
+                fotorama.show(0);
             }
 
-            fotorama.load(imgs);
+            // Set the selected items for next interaction
+            selected_camera = camera;
+            selected_photo = null;
         }
 
+        // Main user interaction logic => selectCamera() & selectPhoto()
+        // The user has selected a photo from the camera tree or photo roll
         function selectPhoto(camera, photo)
         {
-            var index = camera.photoIndex(photo);
-            fotorama.show(index);
+            // Previously camera or nothing was selected
+            if(selected_photo == null)
+            {
+                // Previous camera was different than current camera selected
+                if(!_.isEqual(selected_camera, camera))
+                {
+                    var imgs = camera.getPhotoPaths();
+                    fotorama.load(imgs);
+                }
+                    
+                var index = camera.photoIndex(photo);
+                fotorama.show(index);
+            }
+            // Previously photo was selected
+            else
+            {
+                // Previous photo selected was from different camera
+                if(!_.isEqual(selected_camera, camera))
+                {
+                    var imgs = camera.getPhotoPaths();
+                    fotorama.load(imgs);
+                }
+                
+                // Previous photo selected was not the same as the current photo selected
+                if(!_.isEqual(selected_photo, photo))
+                {
+                    var index = camera.photoIndex(photo);
+                    fotorama.show(index);
+                }
+            }
+
+            selected_camera = camera;
+            selected_photo = photo;
         }
 
         // Menu item

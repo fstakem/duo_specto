@@ -50,10 +50,22 @@ Camera.prototype =
 
 	addPhoto: function(photo)
 	{
-		if(this.photoIndex(photo) >= 0)
+		if(this.photoIndex(photo) < 0)
 		{
 			this.photos.push(photo);
 		}
+	},
+
+	getPhotoPaths: function()
+	{
+		var imgs = Array();
+
+	    for(i = 0; i < this.photos.length; i++)
+	    {
+	        imgs.push( { img: this.photos[i].path } )
+	    }
+
+	    return imgs;
 	},
 
 };

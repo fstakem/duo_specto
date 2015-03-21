@@ -63,6 +63,18 @@ def cameras():
 
     return render_template('cameras.html')
 
+@flask_app.route('/stereo', methods=['GET'])
+def stereo():
+    logger.debug('Rendering stereo page.')
+
+    return render_template('stereo.html')
+
+@flask_app.route('/analysis', methods=['GET'])
+def analysis():
+    logger.debug('Rendering analysis page.')
+
+    return render_template('analysis.html')
+
 @flask_app.route('/capture_photo', methods=['POST'])
 def capture_photo():
     logger.debug('Capturing photos.')
