@@ -260,7 +260,11 @@
                 for(i = 0; i < camera_tree.core.data.length; i++)
                 {
                     var node = camera_tree.core.data[i];
-                    cameras.push(node.data)
+
+                    if(node.data instanceof Camera)
+                    {
+                        cameras.push(node.data);
+                    }
                 }
             }
             
@@ -345,8 +349,6 @@
         {
             console.log("Handle new tree data:");
             console.log(cameras);
-            test_cameras = cameras;
-
 
             var no_camera_line = $('#no-cameras-p');
             if(no_camera_line.length != 0)
@@ -384,34 +386,108 @@
 
                 if(parentObject == undefined)
                 {
-                    selectCamera(selectedObject);
+                    var camera = new Camera(selectedObject.id, selectedObject.name, selectedObject.ip_address);
+                    camera.photos = selectedObject.photos;
+                    selectCamera(camera);
                 }
                 else
                 {
-                    selectPhoto(parentObject, selectedObject);
+                    var camera = new Camera(parentObject.id, parentObject.name, parentObject.ip_address);
+                    camera.photos = parentObject.photos;
+                    var photo = new Photo(selectedObject.id, selectedObject.name, selectedObject.path)
+                    selectPhoto(camera, photo);
                 }
             });
         }
 
+        function takePhoto()
+        {
+            console.log('TAKE PHOTO');
+        }
+
+        function fetchPhotos()
+        {
+            console.log('FETCH PHOTOS');
+        }   
+
+        function deleteCamera()
+        {
+            console.log('DELETE CAMERA');
+        }
+
+        function testConnectivity()
+        {
+            console.log('TEST CONNECTIVITY');
+        }
+
+        function deletePhoto()
+        {
+            console.log('DELETE PHOTO');
+        }
+
+        function performAnalysis()
+        {
+            window.location.href = '/analysis'
+        }
+
         function customMenu(node)
         {
+            var selectedObject = node.data;
+            var parentId = node.parent;
+            var parentObjectSearch = $.grep(camera_tree.core.data, function(e){return e.id == parentId;});
+            var parentObject;
+
             var items = 
             {
-                renameItem: 
+                takePhoto: 
                 {
-                    label: "Rename",
-                    action: function () {}
+                    label: "Take Photo",
+                    action: takePhoto,
+                    icon: "fa fa-camera"
                 },
-                deleteItem: 
+                fetchPhotos: 
                 {
-                    label: "Delete",
-                    action: function () {}
+                    label: "Fetch Photos",
+                    action: fetchPhotos,
+                    icon: 'fa fa-download'
+                },
+                deleteCamera: 
+                {
+                    label: "Delete Camera",
+                    action: deleteCamera,
+                    icon: 'fa fa-remove'
+                },
+                testConnectivity: 
+                {
+                    label: "Test Connectivity",
+                    action: testConnectivity,
+                    icon: 'fa fa-heartbeat'
+                },
+                deletePhoto:
+                {
+                    label: "Delete Photo",
+                    action: deletePhoto,
+                    icon: 'fa fa-remove'
+                },
+                performAnalysis: 
+                {
+                    label: "Perform Analaysis",
+                    action: performAnalysis,
+                    icon: 'fa fa-image'
                 }
             };
 
-            if ($(node).hasClass("folder")) 
+            if(parentId == '#') 
             {
-                delete items.deleteItem;
+                delete items.deletePhoto;
+                delete items.performAnalysis;
+            }
+            else
+            {
+                delete items.takePhoto;
+                delete items.fetchPhotos;
+                delete items.deleteCamera;
+                delete items.testConnectivity;
             }
 
             return items;

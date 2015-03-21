@@ -60,10 +60,19 @@ Camera.prototype =
 	{
 		var imgs = Array();
 
-	    for(i = 0; i < this.photos.length; i++)
-	    {
-	        imgs.push( { img: this.photos[i].path } )
-	    }
+		if(this.photos.length > 0)
+		{
+			for(i = 0; i < this.photos.length; i++)
+		    {
+		        imgs.push( { img: this.photos[i].path } )
+		    }
+		}
+		else
+		{
+			imgs.push( { img: '/static/imgs/no_img.png' } )
+		}
+
+	    
 
 	    return imgs;
 	},
