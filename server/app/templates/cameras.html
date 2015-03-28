@@ -111,9 +111,12 @@
     var camera_tree = null;
     var selected_camera = null;
     var selected_photo = null;
+    var system_busy = false;
     var capture_photo_url = "/capture_photo";
     var fetch_photo_url = "/fetch_photo";
     var search_camera_url = "/search_camera";
+    var delete_photos_url = "/delete_photos";
+    var delete_photo_url = "/delete_photo";
 
     var test_cameras = null;
 
@@ -150,6 +153,7 @@
             }
 
             activateButtonSpinner(this);
+            system_busy = true;
             e.preventDefault();
 
             $.ajax(
@@ -161,7 +165,6 @@
                 success: function(raw_data, text_status, xhr)
                 {
                     console.log("AJAX Request success -> ", xhr, " -> ", text_status)
-                    console.log("Data -> ", raw_data)
                     deactivateButtonSpinner(this);
 
                     if(this.url == capture_photo_url)
@@ -177,14 +180,18 @@
                         searchCameraResult(raw_data, this);
                     }
 
+                    system_busy = false;
+
                 },
                 complete : function(xhr, text_status) 
                 {
                     console.log("AJAX Request complete -> ", xhr, " -> ", text_status)
+                    system_busy = false
                 },
                 error: function(xhr, text_status, error_thrown)
                 {
                     console.log("AJAX Request error -> ", xhr, " -> ", text_status, " error -> ", error_thrown)
+                    system_busy = false;
                     deactivateButtonSpinner(this);
                 }
             });
@@ -400,90 +407,178 @@
             });
         }
 
-        function takePhoto()
+        function renameCamera(node)
+        {
+
+        }
+
+        function takePhoto(node)
         {
             console.log('TAKE PHOTO');
+            console.log(node.item.camera)
         }
 
-        function fetchPhotos()
+        function fetchPhotos(node)
         {
             console.log('FETCH PHOTOS');
+            console.log(node.item.camera)
         }   
 
-        function deleteCamera()
+        function deleteCamera(node)
         {
             console.log('DELETE CAMERA');
+            console.log(node.item.camera);
         }
 
-        function testConnectivity()
+        function testConnectivity(node)
         {
             console.log('TEST CONNECTIVITY');
+            console.log(node.item.camera)
         }
 
-        function deletePhoto()
+        function renamePhoto(node)
         {
-            console.log('DELETE PHOTO');
+            console.log(node.item.photo)
         }
 
-        function performAnalysis()
+        function deletePhoto(node)
         {
-            window.location.href = '/analysis'
+            var url = '';
+            var data = { 
+                        'camera': node.item.camera,
+                        'photo': node.item.photo
+                        }
+            data = JSON.stringify(data, null, '\t');
+
+            $( ".ajax-button" ).attr('disabled', "disabled")
+
+            system_busy = true;
+
+            $.ajax(
+            {
+                type: "POST",
+                url: url,
+                data: data,
+                contentType: 'application/json;charset=UTF-8',
+                success: function(raw_data, text_status, xhr)
+                {
+                    console.log("AJAX Request success -> ", xhr, " -> ", text_status)
+                    $( ".ajax-button" ).removeAttr('disabled', "disabled")
+                    system_busy = false;
+
+                },
+                complete : function(xhr, text_status) 
+                {
+                    console.log("AJAX Request complete -> ", xhr, " -> ", text_status)
+                    $( ".ajax-button" ).removeAttr('disabled', "disabled")
+                    system_busy = false;
+                },
+                error: function(xhr, text_status, error_thrown)
+                {
+                    console.log("AJAX Request error -> ", xhr, " -> ", text_status, " error -> ", error_thrown)
+                    $( ".ajax-button" ).removeAttr('disabled', "disabled")
+                    system_busy = false;
+                }
+            });
+        }
+
+        function performAnalysis(node)
+        {
+            var path = node.item.photo.path;
+            window.location.href = '/analysis?path=' + path
         }
 
         function customMenu(node)
         {
-            var selectedObject = node.data;
             var parentId = node.parent;
             var parentObjectSearch = $.grep(camera_tree.core.data, function(e){return e.id == parentId;});
-            var parentObject;
+            console.log(node)
+
+            var camera = null;
+            var photo = null;
+
+            if(parentId == '#') 
+            {
+                camera = new Camera(node.data.id, node.data.name, node.data.ip_address);
+            }
+            else
+            {
+                camera = parentObjectSearch[0].data;
+                photo =  new Photo(node.data.id, node.data.name , node.data.path);
+            }
 
             var items = 
             {
+                renameCamera:
+                {
+                    label: "Rename Camera",
+                    action: renameCamera,
+                    icon: "fa fa-edit",
+                    camera: camera
+                },
                 takePhoto: 
                 {
                     label: "Take Photo",
                     action: takePhoto,
-                    icon: "fa fa-camera"
+                    icon: "fa fa-camera",
+                    camera: camera
                 },
                 fetchPhotos: 
                 {
                     label: "Fetch Photos",
                     action: fetchPhotos,
-                    icon: 'fa fa-download'
+                    icon: 'fa fa-download',
+                    camera: camera
                 },
                 deleteCamera: 
                 {
                     label: "Delete Camera",
                     action: deleteCamera,
-                    icon: 'fa fa-remove'
+                    icon: 'fa fa-remove',
+                    camera: camera
                 },
                 testConnectivity: 
                 {
                     label: "Test Connectivity",
                     action: testConnectivity,
-                    icon: 'fa fa-heartbeat'
+                    icon: 'fa fa-heartbeat',
+                    camera: camera
+                },
+                renamePhoto:
+                {
+                    label: "Rename Photo",
+                    action: renamePhoto,
+                    icon: 'fa fa-edit',
+                    camera: camera,
+                    photo: photo
                 },
                 deletePhoto:
                 {
                     label: "Delete Photo",
                     action: deletePhoto,
-                    icon: 'fa fa-remove'
+                    icon: 'fa fa-remove',
+                    camera: camera,
+                    photo: photo
                 },
                 performAnalysis: 
                 {
                     label: "Perform Analaysis",
                     action: performAnalysis,
-                    icon: 'fa fa-image'
+                    icon: 'fa fa-image',
+                    camera: camera,
+                    photo: photo
                 }
             };
 
             if(parentId == '#') 
             {
+                delete items.renamePhoto;
                 delete items.deletePhoto;
                 delete items.performAnalysis;
             }
             else
             {
+                delete items.renameCamera;
                 delete items.takePhoto;
                 delete items.fetchPhotos;
                 delete items.deleteCamera;

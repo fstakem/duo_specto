@@ -72,8 +72,21 @@ def stereo():
 @flask_app.route('/analysis', methods=['GET'])
 def analysis():
     logger.debug('Rendering analysis page.')
+    path = request.args.get('path')
 
-    return render_template('analysis.html')
+    return render_template('analysis.html', image_path=path)
+
+@flask_app.route('/delete_photo', methods=['POST'])
+def delete_photo():
+    logger.debug('Deleting a photo.')
+
+    return ''
+
+@flask_app.route('/delete_photos', methods=['POST'])
+def delete_photos():
+    logger.debug('Deleting photos.')
+
+    return ''
 
 @flask_app.route('/capture_photo', methods=['POST'])
 def capture_photo():

@@ -56,6 +56,15 @@ Camera.prototype =
 		}
 	},
 
+	deletePhoto: function(photo)
+	{
+		var index = this.photoIndex(photo);
+		if(index > 0)
+		{
+			this.photos.splice(index, 1);
+		}
+	},
+
 	getPhotoPaths: function()
 	{
 		var imgs = Array();

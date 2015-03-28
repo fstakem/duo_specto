@@ -18,6 +18,15 @@ import tarfile
 import os
 import shutil
 
+def delete_img(img_name):
+	try:
+	    os.remove(img_name)
+	except OSError:
+	    pass
+
+def delete_imgs(paths):
+	shutil.rmtree(paths + '/*')
+
 
 def get_images(from_path, to_path, working_path):
 	tarball_name = 'tmp.tar.gz'
