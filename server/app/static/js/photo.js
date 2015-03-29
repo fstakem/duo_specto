@@ -2,23 +2,22 @@
 //
 //       photo.py
 //       By: Fredrick Stakem
-//       Date: 3.7.14
+//       Date: 3.7.15
 //
 //
 // <-----------------------------------------<---~~--->----------------------------------------->
 
 
-// Libraries
-// None
+var PiIot = PiIot || {};
 
-function Photo(id, name, path)
+PiIot.Photo = function(id, name, path)
 {
 	this.id = id;
 	this.name = name;
 	this.path = path;
 };
 
-Photo.prototype = 
+PiIot.Photo.prototype = 
 {
 
 };

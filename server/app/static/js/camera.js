@@ -2,14 +2,15 @@
 //
 //       camera.py
 //       By: Fredrick Stakem
-//       Date: 3.5.14
+//       Date: 3.5.15
 //
 //
 // <-----------------------------------------<---~~--->----------------------------------------->
 
 
+var PiIot = PiIot || {};
 
-function Camera(id, name, ip_address)
+PiIot.Camera = function(id, name, ip_address)
 {
 	this.id = id;
 	this.name = name;
@@ -17,7 +18,7 @@ function Camera(id, name, ip_address)
 	this.photos = new Array();
 };
 
-Camera.prototype = 
+PiIot.Camera.prototype = 
 {	
 	removePhotosWithoutPath: function()
 	{
