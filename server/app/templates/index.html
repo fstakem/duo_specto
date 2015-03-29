@@ -1,29 +1,15 @@
-{% extends "bootstrap/base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% extends "layout.html" %}
 
-{% block title %}IoT Platform{% endblock %}
-
-{% block navbar %}
-{% include "navbar.html"%}
-{% endblock %}
-
-{% block content %}
-
+{% block main_content %}
 <div class="container">
-    <div class="row">
-
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div style="background-color: #226394; color: white;" class="panel-heading">
-                    <h4 class="panel-title">Introduction</h4>
-                </div>
-                <div class="panel-body">
-                    Test
-                </div>
-            </div>
-        </div>
+    <!-- Main component for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h1>Raspberry Pi Controller</h1>
+        <p>This the landing page for the site.</p>
+        <br></br>
+        <p>
+          <a class="btn btn-lg btn-primary" href="/camera" role="button">Get started &raquo;</a>
+        </p>
     </div>
-</div>
-
-
+</div> <!-- /container -->
 {% endblock %}

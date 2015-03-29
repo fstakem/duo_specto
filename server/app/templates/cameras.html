@@ -1,6 +1,6 @@
-{% extends "bootstrap/base.html" %}
+{% extends "layout.html" %}
 
-{% block head %}
+{% block header %}
 {{super()}}
 <link rel="stylesheet" href="static/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="static/css/spinner.css">
@@ -9,69 +9,63 @@
 <link rel="stylesheet" href="static/js/jstree/dist/themes/default/style.min.css">
 {% endblock %}
 
-{% block title %}IoT Platform{% endblock %}
 
-{% block navbar %}
-{% include "navbar.html"%}
-{% endblock %}
+{% block main_content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color: #577492; color: white;">
+                    <h3 class="panel-title">Cameras</h3>
+                </div>
+                <div class="panel-body">
+                    <h5><b>Found</b></h5>
+                    <p id="no-cameras-p">-- None, please add. --</p>
+                    <div style="width: 250px; margin-bottom: 25px" class="pre-scrollable" id="jstree_demo_div"></div>
 
+                    <div class="btn-group" style="margin-bottom: 20px">
+                        <button class="btn btn-primary ajax-button" id="take-photos-button" >
+                            <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
+                            Take Photos
+                        </button>
 
-{% block content %}
+                        <button class="btn btn-primary ajax-button" id="fetch-photos-button" >
+                            <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
+                            Fetch Photos
+                        </button>
+                    </div>
 
+                    <h5><b>Find Camera</b></h5>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address" value="192.168.1.4">
+                    </div>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="panel panel-default">
-            <div style="background-color: #226394; color: white;" class="panel-heading">
-                <h3 class="panel-title">Cameras</h3>
-            </div>
-            <div class="panel-body">
-                <h5><b>Found</b></h5>
-                <p id="no-cameras-p">-- None, please add. --</p>
-                <div style="width: 250px; margin-bottom: 25px" class="pre-scrollable" id="jstree_demo_div"></div>
-
-                <div class="btn-group" style="margin-bottom: 20px">
-                    <button class="btn btn-primary ajax-button" id="take-photos-button" >
+                    <button class="btn btn-primary ajax-button" id="camera-search-button" >
                         <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
-                        Take Photos
-                    </button>
-
-                    <button class="btn btn-primary ajax-button" id="fetch-photos-button" >
-                        <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
-                        Fetch Photos
+                        Search
                     </button>
                 </div>
-
-                <h5><b>Find Camera</b></h5>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="camera-address-txt" placeholder="Enter camera address" value="192.168.1.4">
-                </div>
-
-                <button class="btn btn-primary ajax-button" id="camera-search-button" >
-                    <span class="spinner"><i class="glyphicon glyphicon-refresh"></i></span>
-                    Search
-                </button>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-9">
-        <div class="panel panel-default">
-            <div style="background-color: #226394; color: white;" class="panel-heading">
-                <h3 class="panel-title">Pictures</h3>
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-1"></div>
-                    <div class="col-md-10">
-                        <div  class="fotorama-div">
-                            <div class="fotorama" data-auto="false">
-                                <!--<img src="static/imgs/pi_cover_1.png"> -->
-                                <!-- <img src="static/imgs/pi_cover_2.png"> -->
+        <div class="col-md-9">
+            <div class="panel panel-default">
+                <div style="background-color: #577492; color: white;" class="panel-heading">
+                    <h3 class="panel-title">Pictures</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-10">
+                            <div  class="fotorama-div">
+                                <div class="fotorama" data-auto="false">
+                                    <!--<img src="static/imgs/pi_cover_1.png"> -->
+                                    <!-- <img src="static/imgs/pi_cover_2.png"> -->
+                                </div>
                             </div>
                         </div>
+                        <div class="col-md-1"></div>
                     </div>
-                    <div class="col-md-1"></div>
                 </div>
             </div>
         </div>
@@ -81,7 +75,7 @@
 
 {% endblock %}
 
-{% block scripts %}
+{% block js_include %}
 {{super()}}
 <script src="static/js/jstree/dist/jstree.min.js"></script>
 <script src="static/js/fotorama/fotorama.js"></script>
@@ -709,9 +703,7 @@
         }
 
         // Menu item
-        //$('#camera_menu_item').addClass('active');
-        $('#camera_menu_item')[0].style.background = "#8db3d0";
-        $('#camera_menu_item a')[0].style.color = "black"
+        $('#camera_menu_item').addClass('active');
 
     });
 

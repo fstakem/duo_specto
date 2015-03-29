@@ -1,53 +1,30 @@
-{% extends "bootstrap/base.html" %}
+{% extends "layout.html" %}
 
-{% block head %}
-{{super()}}
-<link rel="stylesheet" href="static/font-awesome/css/font-awesome.min.css">
-<link rel="stylesheet" href="static/css/spinner.css">
-<link rel="stylesheet" href="static/css/spin_animate.css">
-<link rel="stylesheet" href="static/js/jstree/dist/themes/default/style.min.css">
-{% endblock %}
-
-{% block title %}IoT Platform{% endblock %}
-
-{% block navbar %}
-{% include "navbar.html"%}
-{% endblock %}
-
-
-{% block content %}
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div style="background-color: #226394; color: white;" class="panel-heading">
-                <h3 class="panel-title">Analysis</h3>
-            </div>
-            <div class="panel-body">
-               <img src="{{ image_path }}" class="img-rounded" style="width: 800px; height: 600px">
+{% block main_content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color: #577492; color: white;">
+                    <h3 class="panel-title">Stereo</h3>
+                </div>
+                <div class="panel-body">
+                    <img src="{{ image_path }}" class="img-rounded" style="width: 800px; height: 600px">
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-
 {% endblock %}
 
-{% block scripts %}
+{% block js_include %}
 {{super()}}
-<script src="static/js/jstree/dist/jstree.min.js"></script>
-<script src="static/js/photo.js"></script>
-<script src="static/js/lodash.min.js"></script>
-<script src="static/js/jquery.hotkeys.js"></script>
 
 <script>
     jQuery(document).ready(function () 
     {
-
-     // Menu item
-        $('#analysis_menu_item')[0].style.background = "#8db3d0";
-        $('#analysis_menu_item a')[0].style.color = "black"
-
+        // Menu item
+        $('#analysis_menu_item').addClass('active');
     });
 </script>
 {% endblock %}
